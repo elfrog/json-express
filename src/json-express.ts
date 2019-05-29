@@ -78,13 +78,15 @@ class JsonExpress {
     if (Array.isArray(expression)) {
       const arr = [];
       const checker = new Array<boolean>(expression.length).fill(false);
+      let completed = false;
 
       for (let i = 0; i < expression.length; i++) {
         this.buildExpression(expression[i], context, v => {
           arr[i] = v;
           checker[i] = true;
 
-          if (checker.every(ch => ch)) {
+          if (completed || checker.every(ch => ch)) {
+            completed = true;
             cb(arr);
           }
         });
@@ -107,7 +109,6 @@ class JsonExpress {
       const target = item.matcher.restColumn ? { [item.matcher.restColumn.name]: rest } : {};
       const keys = Object.keys(expression);
       const handleKeys = [];
-      const checker = new Set<string>();
 
       for (const key of keys) {
         const v = expression[key];
@@ -117,24 +118,23 @@ class JsonExpress {
 
           if (column.unhandled) {
             target[key] = v;
-            checker.add(key);
           } else {
             handleKeys.push(key);
-            
           }
         } else {
           rest[key] = v;
-          checker.add(key);
         }
       }
 
       if (handleKeys.length > 0) {
+        const checker = new Set<string>();
+
         for (const key of handleKeys) {
           this.buildExpression(expression[key], context, v => {
             target[key] = v;
             checker.add(key);
 
-            if (checker.size === keys.length) {
+            if (checker.size === handleKeys.length) {
               this.buildObject(target, context, item.handler, cb);
             }
           });
