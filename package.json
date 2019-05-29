@@ -2,6 +2,8 @@
   "name": "json-express",
   "version": "1.0.0",
   "description": "Parse JSON expression and transform into another forms.",
+  "homepage": "https://github.com/elfrog/json-express",
+  "bugs": "https://github.com/elfrog/json-express/issues",
   "main": "lib/index.js",
   "types": "lib/index.d.ts",
   "scripts": {
@@ -9,7 +11,11 @@
     "test": "mocha --require ts-node/register 'src/**/*.test.ts'"
   },
   "keywords": [],
-  "author": "Baek Jonghyeon",
+  "author": {
+    "name": "Baek Jonghyeon",
+    "email": "elfrog.jh@gmail.com",
+    "url": "https://github.com/elfrog"
+  },
   "license": "MIT",
   "dependencies": {
     "md5": "^2.2.1",
