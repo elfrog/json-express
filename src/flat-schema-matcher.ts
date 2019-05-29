@@ -50,7 +50,7 @@ class FlatSchemaMatcher {
     for (const column of this.columns) {
       const value = expression[column.name];
 
-      if (value) {
+      if (value !== undefined) {
         if (!FlatSchemaMatcher.checkColumnType(value, column.type)) {
           return false;
         }
@@ -106,6 +106,19 @@ class FlatSchemaMatcher {
     return '{' + tokens.join(', ') + '}';
   }
 
+  private static parseColumnValue(type, value) {
+    if (value === undefined) {
+      return undefined;
+    }
+
+    switch (type) {
+      case 'integer':
+      case 'number': return Number(value);
+      case 'boolean': return value === 'true';
+      default: return value;
+    }
+  }
+
   private static normalizeSchemaColumns(schema: FlatSchema) {
     const columns: FlatSchemaColumn[] = [];
     let restColumn: FlatSchemaColumn = null;
@@ -118,10 +131,9 @@ class FlatSchemaMatcher {
         const required = t[1].indexOf('?') < 0;
         const unhandled = t[1].indexOf('^') >= 0;
         const columnType = t[2] ? t[2].toLowerCase() : 'any';
-        const columnValue = columnType === 'number' ? Number(t[3]) : (columnType === 'boolean' ? t[3] === 'true' : t[3]);
         const column = {
           type: columnType as FlatSchemaColumnType,
-          value: columnValue,
+          value: FlatSchemaMatcher.parseColumnValue(columnType, t[3]),
           name: key,
           required,
           unhandled
