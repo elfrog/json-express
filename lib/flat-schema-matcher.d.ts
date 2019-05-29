@@ -29,6 +29,7 @@ declare class FlatSchemaMatcher {
     getSchemaHash(): any;
     private static columnToString;
     toString(): string;
+    private static parseColumnValue;
     private static normalizeSchemaColumns;
     private static checkColumnType;
 }

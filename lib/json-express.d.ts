@@ -18,8 +18,6 @@ declare class JsonExpress {
     addHandler(handler: JsonExpressHandler): void;
     build(expression: any, context?: JsonExpressContext, cb?: JsonExpressReturnCallback): Promise<{}>;
     private buildExpression;
-    private buildArray;
-    private buildString;
     private buildObject;
     private getHandlerItem;
 }

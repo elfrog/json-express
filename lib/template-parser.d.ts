@@ -5,19 +5,20 @@
  * And another one is the template string that returns a string value
  * that concatinates literals and interpolated expressions into one.
  *
- * === EBNF Of TemplateExpression ===
- * TEXT = any visible characters include white spaces
- * DIGIT = `0`...`9`
- * NAME = (`a`...`z` | `A`...`Z` | `$` | `_`) {`a`...`z` | `A`...`Z` | `$` | `_` | DIGIT}
- * NUMBER = [`-`] DIGIT {DIGIT} [`.` {DIGIT}]
- * string = returningstring | templatestring
- * returningstring = `{=` expression `}`
- * templatestring = {TEXT | `{` expression `}`}
- * expression = binding {`|` pipeexpression}
- * binding = NAME {`.` NAME}
- * pipeexpression = NAME {pipearg}
- * pipearg = NUMBER | quotedtext | binding
- * quotedtext = `"` TEXT `"` | `'` TEXT `'`
+ * === PEG for TemplateExpression ===
+ * String <- ReturningString / TemplateString
+ * ReturningString <- '{=' _ Expression _ '}'
+ * TemplateString <- '{' _ Expression _ '}' / Text
+ * Expression <- Binding (_ '|' _ PipeExpression)*
+ * PipeExpression <- Name (_ PipeArg)*
+ * PipeArg <- Number | QuotedText | Binding
+ * QuotedText <- '"' ((&'\\"' / !'"') .)* '"' / "'" ((&"\\'" / !"'") .)* "'"
+ * Binding = Name ('.' Name)*
+ * Name <- [a-zA-Z$_] [a-zA-Z0-9$_]
+ * Text <- .+
+ * Number <- '-'? Digit+ ('.' Digit*)?
+ * Digit <- [0-9]
+ * _ <- [ \t]*
  */
 declare const enum TemplateParserNodeType {
     NAME = "NAME",
