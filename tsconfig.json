@@ -7,7 +7,8 @@
     "esModuleInterop": true,
     "resolveJsonModule": true,
     "outDir": "lib",
-    "sourceMap": false
+    "sourceMap": false,
+    "lib": ["es2015"]
   },
   "include": [ "src/**/*.ts" ],
   "exclude": [ "node_modules", "lib" ]
