@@ -5,7 +5,8 @@ const SchemaMatchBuilder = {
   schema: {
     type: '=SchemaMatch',
     name: '?^string=SchemaMatchBuilder',
-    data: '^string'
+    data: '^string',
+    notable: 'boolean'
   },
   build: (data) => {
     return data.data;
@@ -62,7 +63,8 @@ describe('JsonExpress', function () {
     const je = new JsonExpress([ SchemaMatchBuilder ]);
     const result = await je.build({
       type: 'SchemaMatch',
-      data: '{=name}'
+      data: '{=name}',
+      notable: false
     }, {
       name: 'test'
     });
