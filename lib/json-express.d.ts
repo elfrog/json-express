@@ -16,7 +16,7 @@ declare class JsonExpress {
     private handlerItems;
     constructor(handlers?: JsonExpressHandler[]);
     addHandler(handler: JsonExpressHandler): void;
-    build(expression: any, context?: JsonExpressContext, cb?: JsonExpressReturnCallback): Promise<{}>;
+    build(expression: any, context?: JsonExpressContext, cb?: JsonExpressReturnCallback): Promise<unknown>;
     private buildExpression;
     private buildObject;
     private getHandlerItem;

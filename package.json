@@ -22,10 +22,10 @@
     "moment": "^2.24.0"
   },
   "devDependencies": {
-    "@types/mocha": "^5.2.6",
-    "@types/node": "^11.11.0",
-    "mocha": "^6.0.2",
-    "ts-node": "^8.0.3",
-    "typescript": "^3.3.3333"
+    "@types/mocha": "^5.2.7",
+    "@types/node": "^11.13.13",
+    "mocha": "^6.1.4",
+    "ts-node": "^8.2.0",
+    "typescript": "^3.5.1"
   }
 }
