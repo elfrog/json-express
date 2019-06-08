@@ -29,7 +29,7 @@ const ListBuilder = {
   build: async (data) => {
     return '<ul>' + data.items.map(p => '<li>' + p + '</li>').join('') + '</ul>';
   }
-}
+};
 
 const DataBinder = {
   schema: {
@@ -41,7 +41,17 @@ const DataBinder = {
     ctx[data.binding || '$'] = data.data;
     return data.rest;
   }
-}
+};
+
+const PlaceholderTransformer = {
+  schema: {
+    placeholderValue: '^string'
+  },
+  placeholder: () => 'Loading...',
+  transform: async (data) => {
+    return data.placeholderValue;
+  }
+};
 
 describe('JsonExpress', function () {
   it('works with builders', async () => {
@@ -90,5 +100,22 @@ describe('JsonExpress', function () {
         }
       ]);
     });
+  });
+
+  it('uses placeholder before complete build', async () => {
+    const je = new JsonExpress([ PlaceholderTransformer, ListBuilder ]);
+    const midResults = [];
+    const finalResult = await je.build({
+      items: [
+        { placeholderValue: 'test1' },
+        { placeholderValue: 'test2' },
+        { placeholderValue: 'test3' }
+      ]
+    }, {}, r => {
+      midResults.push(r);
+    });
+
+    equal(finalResult, '<ul><li>test1</li><li>test2</li><li>test3</li></ul>');
+    equal(midResults.length, 4);
   });
 });
