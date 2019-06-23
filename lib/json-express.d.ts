@@ -8,7 +8,7 @@ interface JsonExpressHandler {
     placeholder?(value: object): any;
 }
 interface JsonExpressReturnCallback {
-    (value: any): void;
+    (value: any, completed?: boolean): void;
 }
 declare class JsonExpress {
     static Template: typeof TemplateExpression;
