@@ -70,7 +70,7 @@ class TemplateExpression {
           let str = '';
 
           for (let i = 0; i < instruction.n; i++) {
-            str = stack.pop().toString() + str;
+            str = String(stack.pop()) + str;
           }
 
           stack.push(str);
