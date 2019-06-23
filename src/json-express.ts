@@ -25,7 +25,7 @@ interface JsonExpressHandlerItem {
 }
 
 interface JsonExpressReturnCallback {
-  (value: any): void;
+  (value: any, completed?: boolean): void;
 }
 
 class JsonExpress {
@@ -64,34 +64,21 @@ class JsonExpress {
 
   async build(expression: any, context: JsonExpressContext = {}, cb?: JsonExpressReturnCallback) {
     return new Promise(resolve => {
-      this.buildExpression(expression, context, root => {
+      this.buildExpression(expression, context, (root, completed) => {
         if (cb) {
-          cb(root);
+          cb(root, completed);
         }
 
-        resolve(root);
+        // resolves when completed (when no placeholder founds)
+        if (completed) {
+          resolve(root);
+        }
       });
     });
   }
 
   private buildExpression(expression: any, context: JsonExpressContext = {}, cb: JsonExpressReturnCallback) {
-    if (Array.isArray(expression)) {
-      const arr = [];
-      const checker = new Array<boolean>(expression.length).fill(false);
-      let completed = false;
-
-      for (let i = 0; i < expression.length; i++) {
-        this.buildExpression(expression[i], context, v => {
-          arr[i] = v;
-          checker[i] = true;
-
-          if (completed || checker.every(ch => ch)) {
-            completed = true;
-            cb(arr);
-          }
-        });
-      }
-    } else if (typeof expression === 'string') {
+    if (typeof expression === 'string') {
       const hash = md5(expression);
       let t = null;
 
@@ -102,7 +89,32 @@ class JsonExpress {
         JsonExpress.templateCache.set(hash, t);
       }
 
-      t.execute(context).then(cb);
+      t.execute(context).then((r: any) => cb(r, true));
+    } else if (Array.isArray(expression)) {
+      const arr = [];
+      const checker = new Array<boolean>(expression.length).fill(false);
+      let checkCount = 0;
+      let completeCount = 0;
+
+      for (let i = 0; i < expression.length; i++) {
+        this.buildExpression(expression[i], context, (v, completed) => {
+          arr[i] = v;
+          
+          if (!checker[i]) {
+            checker[i] = true;
+            checkCount++;
+          }
+
+          // callbacks that completed is set true will appear exactly once per each
+          if (completed) {
+            completeCount++;
+          }
+
+          if (checkCount === checker.length) {
+            cb(arr, completeCount === checkCount);
+          }
+        });
+      }
     } else if (typeof expression === 'object') {
       const item = this.getHandlerItem(expression);
       const rest = {};
@@ -128,14 +140,23 @@ class JsonExpress {
 
       if (handleKeys.length > 0) {
         const checker = new Set<string>();
+        let completeCount = 0;
 
         for (const key of handleKeys) {
-          this.buildExpression(expression[key], context, v => {
+          this.buildExpression(expression[key], context, (v, completed) => {
             target[key] = v;
             checker.add(key);
 
+            if (completed) {
+              completeCount++;
+            }
+
             if (checker.size === handleKeys.length) {
-              this.buildObject(target, context, item.handler, cb);
+              if (checker.size === completeCount) {
+                this.buildObject(target, context, item.handler, cb);
+              } else {
+                this.buildObject(target, context, item.handler, v => cb(v, false));
+              }
             }
           });
         }
@@ -143,13 +164,13 @@ class JsonExpress {
         this.buildObject(target, context, item.handler, cb);
       }
     } else {
-      cb(expression);
+      cb(expression, true);
     }
   }
 
   private buildObject(target: object, context: JsonExpressContext, handler: JsonExpressHandler, cb: JsonExpressReturnCallback) {
     if ('placeholder' in handler) {
-      cb(handler.placeholder(target));
+      cb(handler.placeholder(target), false);
     }
 
     if ('transform' in handler) {
@@ -165,9 +186,9 @@ class JsonExpress {
       const result = (handler as JsonExpressBuilder).build(target, context);
 
       if (result instanceof Promise) {
-        result.then(cb);
+        result.then(r => cb(r, true));
       } else {
-        cb(result);
+        cb(result, true);
       }
     }
   }
