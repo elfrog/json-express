@@ -6,6 +6,9 @@
   "bugs": "https://github.com/elfrog/json-express/issues",
   "main": "lib/index.js",
   "types": "lib/index.d.ts",
+  "files": [
+    "/lib"
+  ],
   "scripts": {
     "build": "tsc",
     "test": "mocha --require ts-node/register 'src/**/*.test.ts'"
