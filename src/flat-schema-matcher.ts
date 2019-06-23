@@ -73,7 +73,13 @@ class FlatSchemaMatcher {
   }
 
   getSchemaHash() {
-    return md5(this.columns.map(column => column.name).join(','));
+    return md5(this.columns.map(column => {
+      if (column.value === undefined) {
+        return column.name;
+      } else {
+        return column.name + '=' + column.value
+      }
+    }).join(','));
   }
 
   private static columnToString(column: FlatSchemaColumn) {

@@ -1,4 +1,4 @@
-import { equal, throws } from 'assert';
+import { equal, throws, doesNotThrow } from 'assert';
 import JsonExpress from '../json-express';
 
 const SchemaMatchBuilder = {
@@ -86,6 +86,25 @@ describe('JsonExpress', function () {
           schema: {
             body: 'object',
             type: 'string=test'
+          }
+        }
+      ]);
+    });
+  });
+
+  it('allows schema that have same keys but different matches', () => {
+    doesNotThrow(() => {
+      new JsonExpress([
+        {
+          schema: {
+            type: '=test1',
+            body: 'object'
+          }
+        },
+        {
+          schema: {
+            type: '=test2',
+            body: 'object'
           }
         }
       ]);
