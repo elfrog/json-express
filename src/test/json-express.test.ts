@@ -102,6 +102,22 @@ describe('JsonExpress', function () {
     });
   });
 
+  it('does not accept invalid column types', () => {
+    throws(() => {
+      new JsonExpress([
+        {
+          schema: { type: 'newtype' }
+        },
+        {
+          schema: {
+            body: 'object',
+            type: 'string=test'
+          }
+        }
+      ]);
+    });
+  });
+
   it('allows schema that have same keys but different matches', () => {
     doesNotThrow(() => {
       new JsonExpress([

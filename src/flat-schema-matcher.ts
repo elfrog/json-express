@@ -1,6 +1,6 @@
 import md5 from 'md5';
 
-const enum FlatSchemaColumnType {
+enum FlatSchemaColumnType {
   STRING = 'string',
   BOOLEAN = 'boolean',
   NUMBER = 'number',
@@ -126,6 +126,7 @@ class FlatSchemaMatcher {
   }
 
   private static normalizeSchemaColumns(schema: FlatSchema) {
+    const columnTypes = Object.values(FlatSchemaColumnType);
     const columns: FlatSchemaColumn[] = [];
     let restColumn: FlatSchemaColumn = null;
 
@@ -133,10 +134,20 @@ class FlatSchemaMatcher {
       const v = schema[key];
 
       if (typeof v === 'string') {
-        const t = /^([\^\?]*)(string|number|integer|boolean|array|object|any|null|\.\.\.)?(?:=(.+))?$/i.exec(v);
+        const t = /^([\^\?]*)([^=]+)?(?:=(.+))?$/i.exec(v);
+
+        if (!t) {
+          throw new Error('Invalid schema column: ' + v);
+        }
+
         const required = t[1].indexOf('?') < 0;
         const unhandled = t[1].indexOf('^') >= 0;
         const columnType = t[2] ? t[2].toLowerCase() : 'any';
+
+        if (!columnTypes.includes(columnType)) {
+          throw new Error('Invalid column type: ' + columnType);
+        }
+
         const column = {
           type: columnType as FlatSchemaColumnType,
           value: FlatSchemaMatcher.parseColumnValue(columnType, t[3]),
@@ -155,6 +166,10 @@ class FlatSchemaMatcher {
           columns.push(column);
         }
       } else {
+        if (!columnTypes.includes(v.type)) {
+          throw new Error('Invalid column type: ' + v.type);
+        }
+
         columns.push({
           type: v.type,
           value: v.value,
