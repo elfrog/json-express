@@ -1,4 +1,4 @@
-declare const enum FlatSchemaColumnType {
+declare enum FlatSchemaColumnType {
     STRING = "string",
     BOOLEAN = "boolean",
     NUMBER = "number",
