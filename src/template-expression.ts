@@ -80,7 +80,7 @@ class TemplateExpression {
           const binding = instruction.v;
           let v = context[binding[0]];
 
-          if (!v) {
+          if (v === undefined) {
             throw new Error('Undefined variable: ' + binding[0]);
           }
 
