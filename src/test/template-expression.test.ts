@@ -26,8 +26,7 @@ describe('TemplateExpression', function () {
   
   it('works on pipe handlers', async () => {
     TemplateExpression.addPipeHandler('capitalize', value => value.toString().toUpperCase());
-    TemplateExpression.addPipeHandler('decorate', (value, args) => {
-      const count = args[0] || 1;
+    TemplateExpression.addPipeHandler('decorate', (value, count = 1) => {
       let stars = '';
 
       for (let i = 0; i < count; i++) {

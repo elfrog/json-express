@@ -20,7 +20,7 @@ interface TemplateExpressionContext {
 }
 
 interface TemplateExpressionPipeHandler {
-  (value: any, args?: any[], context?: TemplateExpressionContext): Promise<any> | any;
+  (value: any, ...args: any[]): Promise<any> | any;
 }
 
 interface TemplateExpressionPipeHandlerDictionary {
@@ -100,7 +100,7 @@ class TemplateExpression {
             throw new Error('Undefined pipe handler: ' + instruction.v);
           }
 
-          const r = pipeHandler(v, args, context);
+          const r = pipeHandler(v, ...args);
 
           stack.push(r instanceof Promise ? await r : r);
           break;

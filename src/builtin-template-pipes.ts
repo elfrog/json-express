@@ -1,4 +1,7 @@
 import moment from 'moment';
+import typify from 'typify';
+
+typify.instance('Date', Date);
 
 function strpad(n, width, z = '0') {
   n = n.toString();
@@ -194,64 +197,36 @@ export function getHumanTimeDiff(from, to = new Date(), lang = humanTimeDiffEngl
 }
 
 const pipes = {
-  byte: function (v) {
+  byte: typify('byte :: number -> string', function (v) {
     return formatBytes(Number(v), 0);
-  },
-  percentage: function (v) {
+  }),
+  percentage: typify('percentage :: number -> string', function (v) {
     return (Number(v) * 100) + '%';
-  },
-  currency: function (v, args) {
-    if (args.length === 1 && typeof args[0] === 'number') {
-      return formatCurrency(Number(v), args[0]);
-    }
-
-    return formatCurrency(Number(v));
-  },
-  byteLength: function (v) {
-    return getByteLength(v);
-  },
-  pad: function (v, args) {
-    if (args.length !== 1 || typeof args[0] !== 'number') {
-      throw new Error('Invalid Argument: pad ' + args.join(' '));
-    }
-
-    return strpad(v, args[0]);
-  },
-  truncate: function (v, args) {
-    if (args.length === 0 || typeof args[0] !== 'number') {
-      throw new Error('Invalid Argument: truncate ' + args.join(' '));
-    }
-
-    if (args.length === 2 && typeof args[1] === 'string') {
-      return truncateString(v, args[0], args[1]);
-    }
-
-    return truncateString(v, args[0]);
-  },
-  upperCase: function (v) {
+  }),
+  currency: typify('currency :: number -> number? -> string', formatCurrency),
+  byteLength: typify('byteLength :: number -> string', getByteLength),
+  pad: typify('pad :: number -> number -> string', strpad),
+  truncate: typify('truncate :: string -> number -> string? -> string', truncateString),
+  upperCase: typify('upperCase :: string -> string', function (v) {
     return v.toString().toUpperCase();
-  },
-  lowerCase: function (v) {
+  }),
+  lowerCase: typify('lowerCase :: string -> string', function (v) {
     return v.toString().toLowerCase();
-  },
-  date: function (v, args) {
-    if (args.length === 1 && typeof args[0] === 'string') {
-      return moment(v).format(args[0]);
+  }),
+  date: typify('date :: string | number | Date -> string? -> string', function (v, format) {
+    if (format) {
+      return moment(v).format(format);
     } else {
       return moment(v).format('YYYY-MM-DD');
     }
-  },
-  timeAgo: function (v, args) {
-    if (args.length === 1 && typeof args[0] === 'string') {
-      const lang = args[0].toLowerCase();
-
-      if (lang === 'ko') {
-        return getHumanTimeDiff(v, new Date(), humanTimeDiffKorean);
-      }
+  }),
+  timeAgo: typify('timeAgo :: string | number | Date -> string? -> string', function (v, lang) {
+    if (lang && lang.toLowerCase() === 'ko') {
+      return getHumanTimeDiff(v, new Date(), humanTimeDiffKorean);
     }
 
     return getHumanTimeDiff(v);
-  }
+  })
 };
 
 export default pipes;
