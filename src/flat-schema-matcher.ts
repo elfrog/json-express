@@ -1,38 +1,30 @@
 import md5 from 'md5';
 
-enum FlatSchemaColumnType {
-  STRING = 'string',
-  BOOLEAN = 'boolean',
-  NUMBER = 'number',
-  INTEGER = 'integer',
-  ARRAY = 'array',
-  OBJECT = 'object',
-  ANY = 'any',
-  NULL = 'null',
-  REST = '...'
-}
-
 interface FlatSchemaColumn {
-  type: FlatSchemaColumnType;
+  type?: any;
   name?: string;
   value?: any;
-  unhandled?: boolean;
+  plainLevel?: number;
+  rest?: boolean;
   required?: boolean;
+  lazy?: boolean;
 }
 
 interface FlatSchema {
-  [key: string]: FlatSchemaColumn | string;
+  [key: string]: FlatSchemaColumn;
 }
 
 class FlatSchemaMatcher {
   schema: FlatSchema = {};
   columns: FlatSchemaColumn[];
   restColumn: FlatSchemaColumn;
+  types: object = {};
   schemaHash: string;
 
   constructor(schema: FlatSchema) {
-    const { columns, restColumn } = FlatSchemaMatcher.normalizeSchemaColumns(schema);
+    const { types, columns, restColumn } = FlatSchemaMatcher.normalizeSchemaColumns(schema);
 
+    this.types = types;
     this.columns = columns;
     this.restColumn = restColumn;
     this.schemaHash = this.getSchemaHash();
@@ -46,15 +38,11 @@ class FlatSchemaMatcher {
     }
   }
 
-  test(expression: any) {
+  test(expression: object) {
     for (const column of this.columns) {
       const value = expression[column.name];
 
       if (value !== undefined) {
-        if (!FlatSchemaMatcher.checkColumnType(value, column.type)) {
-          return false;
-        }
-
         if (column.value !== undefined && column.value !== value) {
           return false;
         }
@@ -63,43 +51,59 @@ class FlatSchemaMatcher {
       }
     }
 
+    const isSubset = Object.keys(expression).every(key => key in this.schema);
+
     if (this.restColumn) {
-      // TODO: check required property for rest column
-    } else {
-      return Object.keys(expression).every(key => key in this.schema);
+      if (this.restColumn.required && isSubset) {
+        return false;
+      }
+    } else if (!isSubset) {
+      return false;
     }
 
     return true;
   }
 
   getSchemaHash() {
-    return md5(this.columns.map(column => {
+    const t = this.columns.map(column => {
       if (column.value === undefined) {
         return column.name;
       } else {
         return column.name + '=' + column.value
       }
-    }).join(','));
+    }).join(',');
+
+    if (this.restColumn && this.restColumn.required) {
+      t + '...';
+    }
+
+    return md5(t);
   }
 
   private static columnToString(column: FlatSchemaColumn) {
-    let t = column.name + ': "';
+    let t = column.name;
 
     if (!column.required) {
       t += '?';
     }
 
-    if (column.unhandled) {
-      t += '^';
+    if (column.plainLevel) {
+      t += ':' + String(column.plainLevel);
     }
 
-    t += column.type.toString();
-
-    if (column.value) {
-      t += '=' + column.value;
+    if (column.value && column.value !== 'undefined') {
+      t += ' = ' + JSON.stringify(column.value);
     }
 
-    return t + '"';
+    if (column.rest) {
+      t = '...' + t;
+    }
+
+    if (column.lazy) {
+      t = 'lazy ' + t;
+    }
+
+    return t;
   }
 
   toString() {
@@ -109,104 +113,46 @@ class FlatSchemaMatcher {
       tokens.push(FlatSchemaMatcher.columnToString(this.restColumn));
     }
 
-    return '{' + tokens.join(', ') + '}';
-  }
-
-  private static parseColumnValue(type, value) {
-    if (value === undefined) {
-      return undefined;
-    }
-
-    switch (type) {
-      case 'integer':
-      case 'number': return Number(value);
-      case 'boolean': return value === 'true';
-      default: return value;
-    }
+    return '{\n  ' + tokens.join(',\n  ') + '\n}';
   }
 
   private static normalizeSchemaColumns(schema: FlatSchema) {
-    const columnTypes = Object.values(FlatSchemaColumnType);
     const columns: FlatSchemaColumn[] = [];
+    const types = {};
     let restColumn: FlatSchemaColumn = null;
 
     for (const key in schema) {
-      const v = schema[key];
+      const v: FlatSchemaColumn = schema[key];
+      const col = {
+        name: key,
+        type: v.type,
+        value: v.value,
+        plainLevel: v.plainLevel || 0,
+        rest: v.rest || false,
+        required: v.required === undefined ? true : v.required,
+        lazy: v.lazy || false
+      };
 
-      if (typeof v === 'string') {
-        const t = /^([\^\?]*)([^=]+)?(?:=(.+))?$/i.exec(v);
-
-        if (!t) {
-          throw new Error('Invalid schema column: ' + v);
-        }
-
-        const required = t[1].indexOf('?') < 0;
-        const unhandled = t[1].indexOf('^') >= 0;
-        const columnType = t[2] ? t[2].toLowerCase() : 'any';
-
-        if (!columnTypes.includes(columnType)) {
-          throw new Error('Invalid column type: ' + columnType);
-        }
-
-        const column = {
-          type: columnType as FlatSchemaColumnType,
-          value: FlatSchemaMatcher.parseColumnValue(columnType, t[3]),
-          name: key,
-          required,
-          unhandled
-        };
-
-        if (column.type === FlatSchemaColumnType.REST) {
-          if (restColumn) {
-            throw new Error('Duplicate rest column: ' + column.name);
-          }
-
-          restColumn = column;
+      if (col.rest) {
+        if (restColumn) {
+          throw new Error('Duplicate rest column: ' + restColumn.name + ', ' + key);
         } else {
-          columns.push(column);
+          restColumn = col;
         }
       } else {
-        if (!columnTypes.includes(v.type)) {
-          throw new Error('Invalid column type: ' + v.type);
-        }
+        columns.push(col);
+      }
 
-        columns.push({
-          type: v.type,
-          value: v.value,
-          name: key,
-          required: v.required === undefined ? true : v.required,
-          unhandled: v.unhandled || false
-        });
+      if ('type' in v && v.type !== undefined) {
+        types[key] = v.type;
       }
     }
 
     return {
+      types,
       columns: columns.sort((a, b) => a.name.localeCompare(b.name)),
       restColumn
     };
-  }
-
-  private static checkColumnType(value: any, type: FlatSchemaColumnType) {
-    switch (type) {
-      case FlatSchemaColumnType.STRING:
-        return typeof value === 'string';
-      case FlatSchemaColumnType.NUMBER:
-        return typeof value === 'number';
-      case FlatSchemaColumnType.INTEGER:
-        return Number.isSafeInteger(value);
-      case FlatSchemaColumnType.BOOLEAN:
-        return typeof value === 'boolean';
-      case FlatSchemaColumnType.ARRAY:
-        return Array.isArray(value);
-      case FlatSchemaColumnType.OBJECT:
-        return typeof value === 'object';
-      case FlatSchemaColumnType.ANY:
-        return true;
-      case FlatSchemaColumnType.NULL:
-        return value === null;
-      default:
-        return false;
-    }
   }
 }
 
@@ -214,6 +160,5 @@ export default FlatSchemaMatcher;
 
 export {
   FlatSchema,
-  FlatSchemaColumn,
-  FlatSchemaColumnType
+  FlatSchemaColumn
 };

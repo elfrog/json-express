@@ -1,21 +1,9 @@
-import { equal, throws, doesNotThrow } from 'assert';
+import { equal, throws, doesNotThrow, rejects, doesNotReject } from 'assert';
 import JsonExpress from '../json-express';
-
-const SchemaMatchBuilder = {
-  schema: {
-    type: '=SchemaMatch',
-    name: '?^string=SchemaMatchBuilder',
-    data: '^string',
-    notable: 'boolean'
-  },
-  build: (data) => {
-    return data.data;
-  }
-};
 
 const BodyBuilder = {
   schema: {
-    body: 'any'
+    body: {}
   },
   build: (data) => {
     return '<body>' + data.body + '</body>';
@@ -24,7 +12,9 @@ const BodyBuilder = {
 
 const ListBuilder = {
   schema: {
-    items: 'array'
+    items: {
+      type: 'array'
+    }
   },
   build: async (data) => {
     return '<ul>' + data.items.map(p => '<li>' + p + '</li>').join('') + '</ul>';
@@ -33,27 +23,60 @@ const ListBuilder = {
 
 const DataBinder = {
   schema: {
-    binding: '?^string',
-    data: '^any',
-    rest: '...'
+    binding: {
+      required: false
+    },
+    data: {
+      plainLevel: 1,
+    },
+    rest: {
+      rest: true,
+      lazy: true
+    }
   },
-  transform: async (data, ctx) => {
-    ctx[data.binding || '$'] = data.data;
-    return data.rest;
+  build: (data, ctx) => {
+    return data.rest({
+      ...ctx,
+      [data.bidning || '$']: data.data
+    });
   }
 };
 
-const PlaceholderTransformer = {
+const PlaceholderBuilder = {
   schema: {
-    placeholderValue: '^string'
+    placeholderValue: {
+      required: false
+    }
   },
   placeholder: () => 'Loading...',
-  transform: async (data) => {
+  build: async (data) => {
     return data.placeholderValue;
   }
 };
 
 describe('JsonExpress', function () {
+  it('matches types', () => {
+    const je = new JsonExpress([BodyBuilder, ListBuilder]);
+
+    rejects(async () => {
+      await je.build({
+        body: {
+          items: 'test'
+        }
+      });
+    });
+
+    doesNotReject(async () => {
+      await je.build({
+        body: {
+          items: '{=test}'
+        }
+      }, {
+        test: ['this', 'is', 'an', 'array']
+      });
+    });
+  });
+
   it('works with builders', async () => {
     const je = new JsonExpress([ BodyBuilder, ListBuilder, DataBinder ]);
     const result = await je.build({
@@ -69,50 +92,23 @@ describe('JsonExpress', function () {
     equal(result, '<body><ul><li>my name is Dongho </li><li>and age is 29.</li></ul></body>');
   });
 
-  it('matches schema types', async () => {
-    const je = new JsonExpress([ SchemaMatchBuilder ]);
-    const result = await je.build({
-      type: 'SchemaMatch',
-      data: '{=name}',
-      notable: false
-    }, {
-      name: 'test'
-    });
-
-    equal(result, '{=name}');
-  });
-
   it('does not accept duplicate schema', () => {
     throws(() => {
       new JsonExpress([
         {
           schema: {
-            type: '=test',
-            body: '?object',
-            rest: '...'
-          }
+            type: { value: 'test' },
+            body: { required: false },
+            rest: { rest: true }
+          },
+          build: () => 'test'
         },
         {
           schema: {
-            body: 'object',
-            type: 'string=test'
-          }
-        }
-      ]);
-    });
-  });
-
-  it('does not accept invalid column types', () => {
-    throws(() => {
-      new JsonExpress([
-        {
-          schema: { type: 'newtype' }
-        },
-        {
-          schema: {
-            body: 'object',
-            type: 'string=test'
-          }
+            body: {},
+            type: { value: 'test' }
+          },
+          build: () => 'test'
         }
       ]);
     });
@@ -123,22 +119,24 @@ describe('JsonExpress', function () {
       new JsonExpress([
         {
           schema: {
-            type: '=test1',
-            body: 'object'
-          }
+            type: { value: 'test1' },
+            body: {}
+          },
+          build: () => test
         },
         {
           schema: {
-            type: '=test2',
-            body: 'object'
-          }
+            type: { value: 'test2' },
+            body: {}
+          },
+          build: () => test
         }
       ]);
     });
   });
 
   it('uses placeholder before complete build', async () => {
-    const je = new JsonExpress([ PlaceholderTransformer, ListBuilder ]);
+    const je = new JsonExpress([ PlaceholderBuilder, ListBuilder ]);
     const midResults = [];
     const finalResult = await je.build({
       items: [
