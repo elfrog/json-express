@@ -206,6 +206,20 @@ JsonExpress.typeCheckerGenerator = function (types) {
 };
 ```
 
+Are type checkings asynchronous, you can catch type errors and other asynchronous errors from the callback given by third argument of `JsonExpress.build` method:
+
+```javascript
+const je = new JsonExpress([...]);
+
+je.build(expression, context, (value, completed, error) => {
+  if (error) {
+    ...
+  } else {
+    ...
+  }
+});
+```
+
 ## License
 
 Licensed under the [MIT](LICENSE.txt) license.
