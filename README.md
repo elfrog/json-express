@@ -98,16 +98,16 @@ And there are built-in pipe handlers:
 
 | Pipe Name    | Example                   |
 ---------------|----------------------------
-| byte         | `{1024 | byte} -> "1kb"`    |
-| percentage   | `{0.8 | percentage} -> "80%"` |
-| currency     | `{1024 | currency} -> "1,024"` |
-| byteLength   | `{"abc" | byteLength} -> 3` |
-| pad          | `{32 | pad 5} -> "00032"`   |
-| truncate     | `{"this is long" | truncate 5} -> "this…"` |
-| upperCase    | `{"CamelCase" | upperCase} -> "CAMELCASE"` |
-| lowerCase    | `{"CamelCase" | lowerCase} -> "camelcase"` |
-| date         | `{"2019-07-30T10:50:12.049Z" | date "YYYY/MM/DD"} -> "2019/07/30"` |
-| timeAgo      | `{"2019-07-30T10:50:12.049Z" | timeAgo} -> "today"` |
+| byte         | `{1024 \| byte} -> "1kb"`    |
+| percentage   | `{0.8 \| percentage} -> "80%"` |
+| currency     | `{1024 \| currency} -> "1,024"` |
+| byteLength   | `{"abc" \| byteLength} -> 3` |
+| pad          | `{32 \| pad 5} -> "00032"`   |
+| truncate     | `{"this is long" \| truncate 5} -> "this…"` |
+| upperCase    | `{"CamelCase" \| upperCase} -> "CAMELCASE"` |
+| lowerCase    | `{"CamelCase" \| lowerCase} -> "camelcase"` |
+| date         | `{"2019-07-30T10:50:12.049Z" \| date "YYYY/MM/DD"} -> "2019/07/30"` |
+| timeAgo      | `{"2019-07-30T10:50:12.049Z" \| timeAgo} -> "today"` |
 
 ### Object Builder
 
