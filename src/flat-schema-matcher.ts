@@ -43,8 +43,14 @@ class FlatSchemaMatcher {
       const value = expression[column.name];
 
       if (value !== undefined) {
-        if (column.value !== undefined && column.value !== value) {
-          return false;
+        if (column.value) {
+          if (column.value instanceof RegExp) {
+            if (!column.value.test(value)) {
+              return false;
+            }
+          } else if (column.value !== value) {
+            return false;
+          }
         }
       } else if (column.required) {
         return false;
@@ -69,7 +75,7 @@ class FlatSchemaMatcher {
       if (column.value === undefined) {
         return column.name;
       } else {
-        return column.name + '=' + column.value
+        return column.name + '=' + String(column.value)
       }
     }).join(',');
 
@@ -92,7 +98,7 @@ class FlatSchemaMatcher {
     }
 
     if (column.value && column.value !== 'undefined') {
-      t += ' = ' + JSON.stringify(column.value);
+      t += ' = ' + String(column.value);
     }
 
     if (column.rest) {
