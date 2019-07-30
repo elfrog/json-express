@@ -21,15 +21,15 @@ export declare function getHumanTimeDiff(from: any, to?: Date, lang?: {
     years: string;
 }): any;
 declare const pipes: {
-    byte: (v: any) => string;
-    percentage: (v: any) => string;
-    currency: (v: any, args: any) => string;
-    byteLength: (v: any) => number;
-    pad: (v: any, args: any) => any;
-    truncate: (v: any, args: any) => any;
-    upperCase: (v: any) => any;
-    lowerCase: (v: any) => any;
-    date: (v: any, args: any) => string;
-    timeAgo: (v: any, args: any) => any;
+    byte: any;
+    percentage: any;
+    currency: any;
+    byteLength: any;
+    pad: any;
+    truncate: any;
+    upperCase: any;
+    lowerCase: any;
+    date: any;
+    timeAgo: any;
 };
 export default pipes;

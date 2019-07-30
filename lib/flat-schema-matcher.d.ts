@@ -1,37 +1,27 @@
-declare enum FlatSchemaColumnType {
-    STRING = "string",
-    BOOLEAN = "boolean",
-    NUMBER = "number",
-    INTEGER = "integer",
-    ARRAY = "array",
-    OBJECT = "object",
-    ANY = "any",
-    NULL = "null",
-    REST = "..."
-}
 interface FlatSchemaColumn {
-    type: FlatSchemaColumnType;
+    type?: any;
     name?: string;
     value?: any;
-    unhandled?: boolean;
+    plainLevel?: number;
+    rest?: boolean;
     required?: boolean;
+    lazy?: boolean;
 }
 interface FlatSchema {
-    [key: string]: FlatSchemaColumn | string;
+    [key: string]: FlatSchemaColumn;
 }
 declare class FlatSchemaMatcher {
     schema: FlatSchema;
     columns: FlatSchemaColumn[];
     restColumn: FlatSchemaColumn;
+    types: object;
     schemaHash: string;
     constructor(schema: FlatSchema);
-    test(expression: any): boolean;
+    test(expression: object): boolean;
     getSchemaHash(): any;
     private static columnToString;
     toString(): string;
-    private static parseColumnValue;
     private static normalizeSchemaColumns;
-    private static checkColumnType;
 }
 export default FlatSchemaMatcher;
-export { FlatSchema, FlatSchemaColumn, FlatSchemaColumnType };
+export { FlatSchema, FlatSchemaColumn };

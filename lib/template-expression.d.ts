@@ -2,7 +2,7 @@ interface TemplateExpressionContext {
     [key: string]: any;
 }
 interface TemplateExpressionPipeHandler {
-    (value: any, args?: any[], context?: TemplateExpressionContext): Promise<any> | any;
+    (value: any, ...args: any[]): Promise<any> | any;
 }
 declare class TemplateExpression {
     private static pipeHandlers;
