@@ -1,3 +1,4 @@
+import md5 from 'md5';
 import TemplateParser, { TemplateParserNode, TemplateParserNodeType } from './template-parser';
 import builtinPipes from './builtin-template-pipes';
 
@@ -44,6 +45,7 @@ class TemplateExpressionProgram {
 }
 
 class TemplateExpression {
+  private static templateCache: Map<string, any> = new Map<string, any>();
   private static pipeHandlers: TemplateExpressionPipeHandlerDictionary = Object.assign({}, builtinPipes);
 
   private program: TemplateExpressionProgram;
@@ -162,6 +164,20 @@ class TemplateExpression {
 
       program.add(TemplateExpressionOpcode.PIPE, pipeNode.children.length - 1, pipeNode.value);
     }
+  }
+
+  static async cache(source: string, context: TemplateExpressionContext = {}) {
+    const hash = md5(source);
+    let t = null;
+
+    if (TemplateExpression.templateCache.has(hash)) {
+      t = TemplateExpression.templateCache.get(hash);
+    } else {
+      t = new TemplateExpression(source);
+      TemplateExpression.templateCache.set(hash, t);
+    }
+
+    return t.execute(context);
   }
 
   static addPipeHandler(name: string, handler: TemplateExpressionPipeHandler) {
