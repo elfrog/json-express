@@ -1,3 +1,4 @@
+import { BuildTypeRecord } from './build-type';
 interface FlatSchemaColumn {
     type?: any;
     name?: string;
@@ -6,6 +7,7 @@ interface FlatSchemaColumn {
     rest?: boolean;
     required?: boolean;
     lazy?: boolean;
+    buildType?: string;
 }
 interface FlatSchema {
     [key: string]: FlatSchemaColumn;
@@ -15,6 +17,7 @@ declare class FlatSchemaMatcher {
     columns: FlatSchemaColumn[];
     restColumn: FlatSchemaColumn;
     types: object;
+    buildTypes: BuildTypeRecord;
     schemaHash: string;
     constructor(schema: FlatSchema);
     test(expression: object): boolean;

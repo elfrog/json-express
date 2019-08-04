@@ -1,13 +1,19 @@
 import TemplateExpression from './template-expression';
-import { FlatSchema } from './flat-schema-matcher';
+import FlatSchemaMatcher, { FlatSchema } from './flat-schema-matcher';
 interface JsonExpressContext {
     [key: string]: any;
 }
 interface JsonExpressHandler {
     name?: string;
+    exclusive?: boolean;
     schema: FlatSchema;
     placeholder?(value: object): any;
     build(value: any, context?: JsonExpressContext): any | Promise<any>;
+}
+interface JsonExpressHandlerItem {
+    matcher: FlatSchemaMatcher;
+    handler: JsonExpressHandler;
+    typeChecker: JsonExpressTypeChecker;
 }
 interface JsonExpressReturnCallback {
     (value: any, completed?: boolean, error?: Error): void;
@@ -20,14 +26,13 @@ interface JsonExrpessTypeCheckerGenerator {
 }
 declare class JsonExpress {
     static Template: typeof TemplateExpression;
-    private static templateCache;
     private handlerItems;
     private _typeCheckerGenerator;
     constructor(handlers?: JsonExpressHandler[]);
     typeCheckerGenerator: JsonExrpessTypeCheckerGenerator;
-    generateTypeChecker(types: {}): JsonExpressTypeChecker;
+    private generateTypeChecker;
     addHandler(handler: JsonExpressHandler): void;
     build(expression: any, context?: JsonExpressContext, cb?: JsonExpressReturnCallback): Promise<unknown>;
-    static template(expression: any, context?: JsonExpressContext): Promise<any>;
 }
 export default JsonExpress;
+export { JsonExpressContext, JsonExpressHandler, JsonExpressHandlerItem, JsonExpressTypeChecker };
