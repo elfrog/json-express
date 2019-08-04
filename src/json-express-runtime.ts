@@ -154,7 +154,7 @@ class JsonExpressRuntime extends EventEmitter {
           return false;
         }
 
-        if (!item.matcher.test(item)) {
+        if (!item.matcher.test(expression)) {
           return false;
         }
 
