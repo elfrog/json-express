@@ -114,6 +114,7 @@ And there are built-in pipe handlers:
 The constructor of ``JsonExpress`` takes an array of builders.
 
 The builder contains ``schema`` and ``build`` properties.
+
 ``schema`` property is an object that determines whether it can process or not. If the schema object matches the given JSON data, builder processes with its ``build`` callback. And ``build`` gets JSON data of which all properties are processed already.
 
 And the builder can have optional ``placeholder`` callback. Actually, ``build`` callback can be async function, and instead of waiting for the async result, JsonExpress uses the result of ``placeholder``.
@@ -127,6 +128,13 @@ je.build(expression, {}, result => {
   doSomething(result);
 });
 ```
+
+The builder also has more optional properties: ``name`` and ``exclusive``.
+
+``name`` is an optional property and it can be used by `buildType` property of the schema column that explained later.
+
+``exclusive`` is also an optional property. You can set it true if you don't want it for global schema matching and then you can use it on `buildType` property of the schema column by using the `name` property.
+
 
 ### Schema
 
@@ -182,8 +190,9 @@ There are three state of the object in the object building process. I call `the 
 | Property     | Description            |
 ---------------|-------------------------
 | type         | Type checking is occured for the processed object not for the source. So it checks its type of the processed value at runtime. The `type` property accepts string by default though, you can customize the handling of type checking easily. |
+| buildType    | You can control its build process by setting `buildType`. Set to "string", then its build process regards it as a string even though it's not a string, in that case it will throw an error. Custom types also can be choosen like "CustomType1 | CustomType2", in which the pipe `\|` here means "or". CustomType1 and CustomType2 are set by the builder name.
 | value        | The `value` property can be a RegExp or any primitive value like a string. It's for the source unlike the `type` property, so it can match to the proper builder. |
-| plainLevel   | In the builder process, `plainLevel` suppresses the object building when `plainLevel` is not zero. Technically, it decreases each time the builder process get deepened into an array or an object until it reaches zero again. It's useful when to want the plain object, not the built object. If you want the deep-plain object then set its value as `-1`. |
+| ~~plainLevel~~   | Deprecated. Use `buildType` instead. |
 | rest         | If it's `true` then it gathers the rest properties that are not declared explicitly in the schema and make it into one independent object. |
 | required     | Set if this column is required. It's `true` by default. |
 | lazy         | Instead of giving value directly, it gives an async function that will put the processed value to the place you want. Its lazy function accepts a context as an argument. Beware that if lazy is set `true`, don't set the `type` property since the lazy property always gives a function. So to say the lazy type checking is up to you. |
