@@ -1,13 +1,15 @@
 import md5 from 'md5';
+import BuildType, { BuildTypeRecord } from './build-type';
 
 interface FlatSchemaColumn {
   type?: any;
   name?: string;
   value?: any;
-  plainLevel?: number;
+  plainLevel?: number; // DEPRECATED: this property will be removed in the next version.
   rest?: boolean;
   required?: boolean;
   lazy?: boolean;
+  buildType?: string;
 }
 
 interface FlatSchema {
@@ -19,12 +21,14 @@ class FlatSchemaMatcher {
   columns: FlatSchemaColumn[];
   restColumn: FlatSchemaColumn;
   types: object = {};
+  buildTypes: BuildTypeRecord = {};
   schemaHash: string;
 
   constructor(schema: FlatSchema) {
-    const { types, columns, restColumn } = FlatSchemaMatcher.normalizeSchemaColumns(schema);
+    const { types, buildTypes, columns, restColumn } = FlatSchemaMatcher.normalizeSchemaColumns(schema);
 
     this.types = types;
+    this.buildTypes = buildTypes;
     this.columns = columns;
     this.restColumn = restColumn;
     this.schemaHash = this.getSchemaHash();
@@ -125,6 +129,7 @@ class FlatSchemaMatcher {
   private static normalizeSchemaColumns(schema: FlatSchema) {
     const columns: FlatSchemaColumn[] = [];
     const types = {};
+    const buildTypes = {};
     let restColumn: FlatSchemaColumn = null;
 
     for (const key in schema) {
@@ -136,7 +141,8 @@ class FlatSchemaMatcher {
         plainLevel: v.plainLevel || 0,
         rest: v.rest || false,
         required: v.required === undefined ? true : v.required,
-        lazy: v.lazy || false
+        lazy: v.lazy || false,
+        buildType: v.buildType
       };
 
       if (col.rest) {
@@ -149,13 +155,18 @@ class FlatSchemaMatcher {
         columns.push(col);
       }
 
-      if ('type' in v && v.type !== undefined) {
+      if (v.type !== undefined) {
         types[key] = v.type;
+      }
+
+      if (v.buildType !== undefined) {
+        buildTypes[key] = new BuildType(v.buildType);
       }
     }
 
     return {
       types,
+      buildTypes,
       columns: columns.sort((a, b) => a.name.localeCompare(b.name)),
       restColumn
     };

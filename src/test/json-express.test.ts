@@ -54,11 +54,47 @@ const PlaceholderBuilder = {
   }
 };
 
+const TableHeaderBuilder = {
+  schema: {
+    columns: {
+      type: 'array',
+      buildType: 'array string'
+    }
+  },
+  build: (data) => {
+    let t = '<tr>';
+
+    for (const col of data.columns)  {
+      t += '<th>' + col + '</th>';
+    }
+
+    return t + '</tr>';
+  }
+};
+
+const TodoBuilder = {
+  schema: {
+    todos: {
+      type: 'array',
+      buildType: '{ todo: string, date: string }[]'
+    }
+  },
+  build: (data) => {
+    let t = '<ol>';
+
+    for (const item of data.todos) {
+      t += '<li>' + item.todo + ' <small>' + item.date + '</small></li>';
+    }
+
+    return t + '</ol>';
+  }
+};
+
 describe('JsonExpress', function () {
-  it('matches types', () => {
+  it('matches types', async () => {
     const je = new JsonExpress([BodyBuilder, ListBuilder]);
 
-    rejects(async () => {
+    await rejects(async () => {
       await je.build({
         body: {
           items: 'test'
@@ -66,7 +102,7 @@ describe('JsonExpress', function () {
       });
     });
 
-    doesNotReject(async () => {
+    await doesNotReject(async () => {
       await je.build({
         body: {
           items: '{=test}'
@@ -150,5 +186,43 @@ describe('JsonExpress', function () {
 
     equal(finalResult, '<ul><li>test1</li><li>test2</li><li>test3</li></ul>');
     equal(midResults.length, 4);
+  });
+
+  it('works with build types', async () => {
+    const je = new JsonExpress([ TableHeaderBuilder, TodoBuilder ]);
+
+    await rejects(async () => {
+      await je.build({
+        columns: 'not an array'
+      });
+    });
+
+    await doesNotReject(async () => {
+      await je.build({
+        columns: [
+          'id',
+          'name',
+          'date'
+        ]
+      });
+    });
+
+    await rejects(async () => {
+      await je.build({
+        todos: [
+          { todo: 'waking up early', date: '2019-01-01' },
+          { todo: 'going to school', date: '2019-01-02', anotherProp: true }
+        ]
+      });
+    });
+
+    const todoResult = await je.build({
+      todos: [
+        { todo: 'waking up early', date: '2019-01-01' },
+        { todo: 'going to school', date: '2019-01-02' }
+      ]
+    });
+
+    equal(todoResult, '<ol><li>waking up early <small>2019-01-01</small></li><li>going to school <small>2019-01-02</small></li></ol>');
   });
 });
