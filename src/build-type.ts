@@ -1,4 +1,4 @@
-import { parse } from  './build-type-parser';
+import parse from  './build-type-parser';
 
 interface BuildTypeRecord {
   [key: string]: BuildType;
@@ -10,7 +10,7 @@ class BuildType {
   children: BuildType[] = null;
 
   constructor(value: string) {
-    const parsed = parse(value) as BuildType;
+    const parsed = parse(value, {}) as BuildType;
 
     this.type = parsed.type;
     this.record = parsed.record;
