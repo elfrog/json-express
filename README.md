@@ -190,7 +190,7 @@ There are three state of the object in the object building process. I call `the 
 | Property     | Description            |
 ---------------|-------------------------
 | type         | Type checking is occured for the processed object not for the source. So it checks its type of the processed value at runtime. The `type` property accepts string by default though, you can customize the handling of type checking easily. |
-| buildType    | You can control its build process by setting `buildType`. Set to "string", then its build process regards it as a string even though it's not a string, in that case it will throw an error. Custom types also can be choosen like "CustomType1 | CustomType2", in which the pipe `\|` here means "or". CustomType1 and CustomType2 are set by the builder name.
+| buildType    | You can control its build process by setting `buildType`. Set to "string", then its build process regards it as a string even though it's not a string, in that case it will throw an error. Custom types also can be choosen like "CustomType1 \| CustomType2", in which the pipe `\|` here means "or". CustomType1 and CustomType2 are set by the builder name.
 | value        | The `value` property can be a RegExp or any primitive value like a string. It's for the source unlike the `type` property, so it can match to the proper builder. |
 | ~~plainLevel~~   | Deprecated. Use `buildType` instead. |
 | rest         | If it's `true` then it gathers the rest properties that are not declared explicitly in the schema and make it into one independent object. |
