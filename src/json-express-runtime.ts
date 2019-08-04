@@ -485,7 +485,7 @@ class JsonExpressRuntime extends EventEmitter {
   }
 
   private getHandlerItem(expression) {
-    const item = this.handlerItems.find(item => item.matcher.test(expression));
+    const item = this.handlerItems.find(item => !item.handler.exclusive && item.matcher.test(expression));
 
     return item;
   }

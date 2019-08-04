@@ -9,6 +9,7 @@ interface JsonExpressContext {
 
 interface JsonExpressHandler {
   name?: string;
+  exclusive?: boolean;
   schema: FlatSchema;
   placeholder?(value: object): any;
   build(value: any, context?: JsonExpressContext): any | Promise<any>;
