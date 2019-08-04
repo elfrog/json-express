@@ -66,7 +66,7 @@ class JsonExpress {
     }))
   }
 
-  generateTypeChecker(types: {}): JsonExpressTypeChecker {
+  private generateTypeChecker(types: {}): JsonExpressTypeChecker {
     if (!types || Object.keys(types).length === 0) {
       return () => {};
     }
@@ -81,8 +81,12 @@ class JsonExpress {
   addHandler(handler: JsonExpressHandler) {
     const matcher = new FlatSchemaMatcher(handler.schema);
 
+    if (handler.name && this.handlerItems.some(p => p.handler.name === handler.name)) {
+      throw new Error('Duplicate schema name: ' + handler.name);
+    }
+
     if (this.handlerItems.some(p => p.matcher.schemaHash === matcher.schemaHash)) {
-      throw new Error('Duplicate schema ' + ': ' + matcher.toString());
+      throw new Error('Duplicate schema: ' + matcher.toString());
     }
 
     const item = {
