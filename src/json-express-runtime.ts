@@ -150,7 +150,7 @@ class JsonExpressRuntime extends EventEmitter {
       default:
         const item = this.namedHandlerItems[buildType.type];
 
-        if (!item) {
+        if (!item || typeof item !== 'object') {
           return false;
         }
 
