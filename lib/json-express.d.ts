@@ -1,5 +1,5 @@
 import TemplateExpression from './template-expression';
-import FlatSchemaMatcher, { FlatSchema } from './flat-schema-matcher';
+import FlatSchemaMatcher, { FlatSchema, FlatSchemaColumn } from './flat-schema-matcher';
 interface JsonExpressContext {
     [key: string]: any;
 }
@@ -13,24 +13,27 @@ interface JsonExpressHandler {
 interface JsonExpressHandlerItem {
     matcher: FlatSchemaMatcher;
     handler: JsonExpressHandler;
-    typeChecker: JsonExpressTypeChecker;
+    typeCheckers: JsonExpressTypeCheckerMap;
 }
 interface JsonExpressReturnCallback {
     (value: any, completed?: boolean, error?: Error): void;
 }
 interface JsonExpressTypeChecker {
-    (target: object): void;
+    (value: any): void;
 }
-interface JsonExrpessTypeCheckerGenerator {
-    (types: object, name?: string, schema?: FlatSchema): JsonExpressTypeChecker;
+interface JsonExpressTypeCheckerMap {
+    [key: string]: JsonExpressTypeChecker;
+}
+interface JsonExpressTypeCheckerGenerator {
+    (type: any, schemaColumn?: FlatSchemaColumn): JsonExpressTypeChecker;
 }
 declare class JsonExpress {
     static Template: typeof TemplateExpression;
     private handlerItems;
     private _typeCheckerGenerator;
     constructor(handlers?: JsonExpressHandler[]);
-    typeCheckerGenerator: JsonExrpessTypeCheckerGenerator;
-    private generateTypeChecker;
+    typeCheckerGenerator: JsonExpressTypeCheckerGenerator;
+    private generateTypeCheckers;
     addHandler(handler: JsonExpressHandler): void;
     build(expression: any, context?: JsonExpressContext, cb?: JsonExpressReturnCallback): Promise<unknown>;
 }

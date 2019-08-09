@@ -1,2 +1,2 @@
-declare function typeCheckerGenerator(types: object): (target: object) => void;
+declare function typeCheckerGenerator(type: any): (value: any) => void;
 export default typeCheckerGenerator;
