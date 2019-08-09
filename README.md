@@ -206,11 +206,9 @@ So the `type` property becomes to use the runtime type checker. The default buil
 ```javascript
 import * as yup from 'yup';
 
-JsonExpress.typeCheckerGenerator = function (types) {
-  const validator = yup.object().shape(types);
-
-  return function (target) {
-    validator.validateSync(target);
+JsonExpress.typeCheckerGenerator = function (type) {
+  return function (value) {
+    type.validateSync(value);
   };
 };
 ```
