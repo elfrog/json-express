@@ -291,7 +291,7 @@ class JsonExpressRuntime extends EventEmitter {
     expression: any,
     context: JsonExpressContext,
     continuation: RuntimeContinuation,
-    { handler, matcher, typeChecker }: JsonExpressHandlerItem
+    { handler, matcher, typeCheckers }: JsonExpressHandlerItem
   ) {
     const rest = {};
     const target = matcher.restColumn ? { [matcher.restColumn.name]: rest } : {};
@@ -313,6 +313,7 @@ class JsonExpressRuntime extends EventEmitter {
 
     for (const key of propertyNames) {
       const column = matcher.schema[key];
+      const typeChecker = typeCheckers[key];
 
       if (column.lazy) {
         const oldValue = target[key];
@@ -323,6 +324,10 @@ class JsonExpressRuntime extends EventEmitter {
               lazyContext,
               (v, completed) => {
                 if (completed) {
+                  if (typeChecker) {
+                    typeChecker(v);
+                  }
+
                   resolve(v);
                 }
               },
@@ -337,7 +342,6 @@ class JsonExpressRuntime extends EventEmitter {
         completeCount++;
 
         if (checker.size === propertyNames.length) {
-          typeChecker(target);
           this.buildObject(
             target,
             context,
@@ -355,11 +359,14 @@ class JsonExpressRuntime extends EventEmitter {
             checker.add(key);
 
             if (completed) {
+              if (typeChecker) {
+                typeChecker(v);
+              }
+
               completeCount++;
             }
 
             if (checker.size === propertyNames.length) {
-              typeChecker(target);
               this.buildObject(
                 target,
                 context,

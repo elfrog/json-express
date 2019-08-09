@@ -195,13 +195,13 @@ There are three state of the object in the object building process. I call `the 
 | ~~plainLevel~~   | Deprecated. Use `buildType` instead. |
 | rest         | If it's `true` then it gathers the rest properties that are not declared explicitly in the schema and make it into one independent object. |
 | required     | Set if this column is required. It's `true` by default. |
-| lazy         | Instead of giving value directly, it gives an async function that will put the processed value to the place you want. Its lazy function accepts a context as an argument. Beware that if lazy is set `true`, don't set the `type` property since the lazy property always gives a function. So to say the lazy type checking is up to you. |
+| lazy         | Instead of giving value directly, it gives an async function that will put the processed value to the place you want. Its lazy function accepts a context as an argument. The type checking also occurs when lazy function resolves a value. |
 
 #### Type Check
 
 At the first version of JsonExpress, the type of schema columns was evaluated in the schema matching. But it turns out that it's meaningless defining all the types as `any` in the end, since the type of the column value changes along with the buliding process.
 
-So the `type` property becomes to use the runtime type checker like [typify][typify] that is the default type checker for JsonExpress. You can replace it with another type checker like [Ajv][ajv] or [Yup][yup] by assigning to `JsonExpress.typeCheckerGenerator`:
+So the `type` property becomes to use the runtime type checker. The default built-in type checker is same as used in buildType checker. You can replace it with another type checker like [Ajv][ajv] or [Yup][yup] by assigning to `JsonExpress.typeCheckerGenerator`:
 
 ```javascript
 import * as yup from 'yup';
@@ -228,6 +228,44 @@ je.build(expression, context, (value, completed, error) => {
   }
 });
 ```
+
+#### Build Type
+
+The `buildType` property of the schema column accepts a string that represents Javascript types. A simple representation can be like `"string"` or `"number[]"`. But more complex types can be represented:
+
+| Type representation   | Description          | Matching Example   |
+------------------------|----------------------|--------------------|
+| string                | A string type.       | `"Hello world!"`     |
+| number                | A number type.       | `123`                |
+| boolean               | A boolean type.      | `true`               |
+| array                 | An array type.       | `[1, true, "aray"]`  |
+| null                  | A null type.         | `null`               |
+| any                   | Any types including custom types. | `"Hello"`, `123`, `[]`   |
+| string[]              | An array type in which all values are of a string type. | `["Hello", "world"]` |
+| [string, boolean]     | A tuple type that first item is a string type and second item is a boolean type. | `["Hello", true]` |
+| { name: string, age?: number, ...: any } | An object that `name` property is a string type, `age` property is an optional number type and rest properties are all any type. | `{ name: "Jonghyeon", country: "Korea" }` |
+| string \| number      | A string type or a number type. | `"Hello world!"`, `123` |
+| (string \| number)[]  | An array type in which all values are one of a string type or a number type. | ["Hello", 123] |
+
+The arrow representation can be used for set both `buildType` and `type` properties like:
+
+```javascript
+{
+  buildType: "string[] -> number[]",
+  ...
+```
+
+The first type before `->` will set `buildType` property as `string[]` and the second type after `->` will set `type` property as 'number[]'. So above representation is equal to:
+
+```javascript
+{
+  type: "number[]",
+  buildType: "string[]",
+  ...
+}
+```
+
+Unless you set your own type checker that doesn't understand such a representation, it might be useful as a shortcut. 
 
 ## License
 

@@ -1,5 +1,5 @@
 import TemplateExpression from './template-expression';
-import FlatSchemaMatcher, { FlatSchema } from './flat-schema-matcher';
+import FlatSchemaMatcher, { FlatSchema, FlatSchemaColumn } from './flat-schema-matcher';
 import JsonExpressRuntime from './json-express-runtime';
 import typeCheckerGenerator from './type-checker-generator';
 
@@ -18,7 +18,7 @@ interface JsonExpressHandler {
 interface JsonExpressHandlerItem {
   matcher: FlatSchemaMatcher;
   handler: JsonExpressHandler;
-  typeChecker: JsonExpressTypeChecker;
+  typeCheckers: JsonExpressTypeCheckerMap;
 }
 
 interface JsonExpressReturnCallback {
@@ -27,18 +27,22 @@ interface JsonExpressReturnCallback {
 
 // TypeChecker throws TypeError when type mismatched.
 interface JsonExpressTypeChecker {
-  (target: object): void;
+  (value: any): void;
 }
 
-interface JsonExrpessTypeCheckerGenerator {
-  (types: object, name?: string, schema?: FlatSchema): JsonExpressTypeChecker;
+interface JsonExpressTypeCheckerMap {
+  [key: string]: JsonExpressTypeChecker;
+}
+
+interface JsonExpressTypeCheckerGenerator {
+  (type: any, schemaColumn?: FlatSchemaColumn): JsonExpressTypeChecker;
 }
 
 class JsonExpress {
   static Template = TemplateExpression;
 
   private handlerItems: JsonExpressHandlerItem[] = [];
-  private _typeCheckerGenerator: JsonExrpessTypeCheckerGenerator = typeCheckerGenerator;
+  private _typeCheckerGenerator: JsonExpressTypeCheckerGenerator = typeCheckerGenerator;
 
   constructor(handlers: JsonExpressHandler[] = []) {
     handlers.forEach(handler => this.addHandler(handler));
@@ -48,24 +52,28 @@ class JsonExpress {
     return this._typeCheckerGenerator;
   }
 
-  set typeCheckerGenerator(gen: JsonExrpessTypeCheckerGenerator) {
+  set typeCheckerGenerator(gen: JsonExpressTypeCheckerGenerator) {
     this._typeCheckerGenerator = gen;
     this.handlerItems = this.handlerItems.map(item => ({
       ...item,
-      typeChecker: this.generateTypeChecker(item.matcher.types)
+      typeCheckers: this.generateTypeCheckers(item.matcher.types)
     }))
   }
 
-  private generateTypeChecker(types: {}): JsonExpressTypeChecker {
+  private generateTypeCheckers(types: object): JsonExpressTypeCheckerMap {
     if (!types || Object.keys(types).length === 0) {
-      return () => {};
+      return {};
     }
+
+    const typeCheckers = {};
 
     if (this._typeCheckerGenerator) {
-      return this._typeCheckerGenerator(types);
+      for (const key in types) {
+        typeCheckers[key] = this._typeCheckerGenerator(types[key]);
+      }
     }
 
-    return () => {};
+    return typeCheckers;
   }
 
   addHandler(handler: JsonExpressHandler) {
@@ -82,7 +90,7 @@ class JsonExpress {
     const item = {
       matcher,
       handler,
-      typeChecker: this.generateTypeChecker(matcher.types)
+      typeCheckers: this.generateTypeCheckers(matcher.types)
     };
 
     // Sort by the number of columns in descending order

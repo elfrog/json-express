@@ -100,24 +100,12 @@ function checkValueType(value: any, type: BuildType) {
   return true;
 }
 
-function typeCheckerGenerator(types: object) {
-  const parsedTypes = {};
+function typeCheckerGenerator(type: any) {
+  const parsedType = new BuildType(type);
 
-  for (const key in types) {
-    parsedTypes[key] = new BuildType(types[key]);
-  }
-
-  return function (target: object) {
-    for (const key in target) {
-      const type = parsedTypes[key];
-
-      if (!type) {
-        continue;
-      }
-
-      if (!checkValueType(target[key], type)) {
-        throw new TypeError('Invalid type with: ' + JSON.stringify(target[key]));
-      }
+  return function (value: any) {
+    if (!checkValueType(value, parsedType)) {
+      throw new TypeError('Invalid type with: ' + JSON.stringify(value));
     }
   };
 }

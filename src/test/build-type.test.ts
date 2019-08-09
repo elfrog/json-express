@@ -3,21 +3,17 @@ import typeCheckerGenerator from '../type-checker-generator';
 import BuildType from '../build-type';
 
 describe('BuildType', function () {
-  it('checkes primitive types', () => {
-    const typeChecker = typeCheckerGenerator({
-      stringType: 'string',
-      numberType: 'number',
-      booleanType: 'boolean',
-      arrayType: '(string | boolean)[]'
-    });
+  it('checks primitive types', () => {
+    const stringTypeChecker = typeCheckerGenerator('string');
+    const numberTypeChecker = typeCheckerGenerator('number');
+    const booleanTypeChecker = typeCheckerGenerator('boolean');
+    const arrayTypeChecker = typeCheckerGenerator('(string | boolean)[]');
 
     doesNotThrow(() => {
-      typeChecker({
-        stringType: 'this is string',
-        numberType: 12345,
-        booleanType: true,
-        arrayType: ['string', 'is', 'ok', true, false]
-      });
+      stringTypeChecker('this is string');
+      numberTypeChecker(12345);
+      booleanTypeChecker(true);
+      arrayTypeChecker(['string', 'is', 'ok', true, false]);
     });
   });
 
