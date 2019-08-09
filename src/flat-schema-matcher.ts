@@ -160,7 +160,14 @@ class FlatSchemaMatcher {
       }
 
       if (v.buildType !== undefined) {
-        buildTypes[key] = new BuildType(v.buildType);
+        const buildType =  new BuildType(v.buildType);
+
+        if (buildType.type === '@build') {
+          buildTypes[key] = buildType.children[0];
+          types[key] = buildType.children[1];
+        } else {
+          buildTypes[key] = buildType;
+        }
       }
     }
 

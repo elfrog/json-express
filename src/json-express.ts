@@ -1,7 +1,7 @@
-import typify from 'typify';
 import TemplateExpression from './template-expression';
 import FlatSchemaMatcher, { FlatSchema } from './flat-schema-matcher';
 import JsonExpressRuntime from './json-express-runtime';
+import typeCheckerGenerator from './type-checker-generator';
 
 interface JsonExpressContext {
   [key: string]: any;
@@ -34,22 +34,11 @@ interface JsonExrpessTypeCheckerGenerator {
   (types: object, name?: string, schema?: FlatSchema): JsonExpressTypeChecker;
 }
 
-function defaultTypeCheckerGenerator(types: object): JsonExpressTypeChecker {
-  const keys = Object.keys(types);
-  const typeDecl = '{' + keys.map(key => key + ':' + types[key]).join(',') + '}';
-
-  return (target) => {
-    if (!typify.check(typeDecl, target)) {
-      throw new TypeError(`${JSON.stringify(target)} is not matched to ${typeDecl}`);
-    }
-  };
-}
-
 class JsonExpress {
   static Template = TemplateExpression;
 
   private handlerItems: JsonExpressHandlerItem[] = [];
-  private _typeCheckerGenerator: JsonExrpessTypeCheckerGenerator = defaultTypeCheckerGenerator;
+  private _typeCheckerGenerator: JsonExrpessTypeCheckerGenerator = typeCheckerGenerator;
 
   constructor(handlers: JsonExpressHandler[] = []) {
     handlers.forEach(handler => this.addHandler(handler));

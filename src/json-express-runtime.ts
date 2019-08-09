@@ -67,6 +67,36 @@ class JsonExpressRuntime extends EventEmitter {
     buildType: BuildType
   ) {
     switch (buildType.type) {
+      case '@tuple':
+        if (!Array.isArray(expression) || expression.length !== buildType.children.length) {
+          return false;
+        }
+
+        this.buildTuple(
+          expression,
+          context,
+          continuation,
+          plainLevel,
+          buildType.children
+        );
+        
+        return true;
+      case '@record':
+        if (typeof expression !== 'object') {
+          return false;
+        }
+
+        this.buildRecord(expression, context, continuation, buildType.record);
+
+        return true;
+      case '@choice':
+        for (const subType of buildType.children) {
+          if (this.buildByBuildType(expression, context, continuation, plainLevel, subType)) {
+            return true;
+          }
+        }
+
+        return false;
       case 'string':
         if (typeof expression !== 'string') {
           return false;
@@ -89,36 +119,6 @@ class JsonExpressRuntime extends EventEmitter {
         );
         
         return true;
-      case 'tuple':
-        if (!Array.isArray(expression) || expression.length !== buildType.children.length) {
-          return false;
-        }
-
-        this.buildTuple(
-          expression,
-          context,
-          continuation,
-          plainLevel,
-          buildType.children
-        );
-        
-        return true;
-      case 'record':
-        if (typeof expression !== 'object') {
-          return false;
-        }
-
-        this.buildRecord(expression, context, continuation, buildType.record);
-
-        return true;
-      case 'choice':
-        for (const subType of buildType.children) {
-          if (this.buildByBuildType(expression, context, continuation, plainLevel, subType)) {
-            return true;
-          }
-        }
-
-        return false;
       case 'number':
         if (typeof expression !== 'number') {
           return false;
@@ -388,7 +388,7 @@ class JsonExpressRuntime extends EventEmitter {
     let completeCount = 0;
 
     for (const key in record) {
-      if (key !== '...' && !(key in expression)) {
+      if (!record[key].optional && key !== '...' && !(key in expression)) {
         throw new TypeError('No matched record type: ' + JSON.stringify(expression));
       }
     }
