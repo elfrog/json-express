@@ -11,6 +11,7 @@ interface JsonExpressHandler {
     build(value: any, context?: JsonExpressContext): any | Promise<any>;
 }
 interface JsonExpressHandlerItem {
+    handlerName: string;
     matcher: FlatSchemaMatcher;
     handler: JsonExpressHandler;
     typeCheckers: JsonExpressTypeCheckerMap;
