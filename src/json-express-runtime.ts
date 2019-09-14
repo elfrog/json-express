@@ -17,8 +17,8 @@ class JsonExpressRuntime extends EventEmitter {
     this.handlerItems = handlerItems;
 
     for (const item of handlerItems) {
-      if (item.handler.name) {
-        this.namedHandlerItems[item.handler.name] = item;
+      if (item.handlerName) {
+        this.namedHandlerItems[item.handlerName] = item;
       }
     }
   }

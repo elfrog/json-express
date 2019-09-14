@@ -16,6 +16,7 @@ interface JsonExpressHandler {
 }
 
 interface JsonExpressHandlerItem {
+  handlerName: string;
   matcher: FlatSchemaMatcher;
   handler: JsonExpressHandler;
   typeCheckers: JsonExpressTypeCheckerMap;
@@ -36,6 +37,13 @@ interface JsonExpressTypeCheckerMap {
 
 interface JsonExpressTypeCheckerGenerator {
   (type: any, schemaColumn?: FlatSchemaColumn): JsonExpressTypeChecker;
+}
+
+// To check name mangling
+class AnonymousClass {
+  foo() {
+    return 'bar';
+  }
 }
 
 class JsonExpress {
@@ -78,9 +86,10 @@ class JsonExpress {
 
   addHandler(handler: JsonExpressHandler) {
     const matcher = new FlatSchemaMatcher(handler.schema);
+    const handlerName = handler.name === AnonymousClass.name ? null : handler.name;
 
-    if (handler.name && this.handlerItems.some(p => p.handler.name === handler.name)) {
-      throw new Error('Duplicate schema name: ' + handler.name);
+    if (handlerName && this.handlerItems.some(p => p.handlerName === handlerName)) {
+      throw new Error('Duplicate schema name: ' + handlerName);
     }
 
     if (this.handlerItems.some(p => p.matcher.schemaHash === matcher.schemaHash)) {
@@ -88,6 +97,7 @@ class JsonExpress {
     }
 
     const item = {
+      handlerName,
       matcher,
       handler,
       typeCheckers: this.generateTypeCheckers(matcher.types)
