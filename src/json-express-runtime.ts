@@ -175,7 +175,9 @@ class JsonExpressRuntime extends EventEmitter {
     continuation: RuntimeContinuation,
     plainLevel: number
   ) {
-    if (typeof expression === 'string') {
+    if (expression === null) {
+      continuation(null, true);
+    } else if (typeof expression === 'string') {
       this.buildString(expression, context, continuation);
     } else if (Array.isArray(expression)) {
       this.buildArray(expression, context, continuation, plainLevel, null);
