@@ -225,4 +225,13 @@ describe('JsonExpress', function () {
 
     equal(todoResult, '<ol><li>waking up early <small>2019-01-01</small></li><li>going to school <small>2019-01-02</small></li></ol>');
   });
+
+  it('passes null value', async () => {
+    const je = new JsonExpress([BodyBuilder]);
+    const result = await je.build({
+      body: null
+    });
+
+    equal(result, '<body>null</body>');
+  });
 });
