@@ -1,6 +1,6 @@
 {
   "name": "json-express",
-  "version": "2.3.1",
+  "version": "2.3.3",
   "description": "Parse JSON expression and transform into another forms.",
   "homepage": "https://github.com/elfrog/json-express",
   "bugs": "https://github.com/elfrog/json-express/issues",
