@@ -33,7 +33,8 @@ declare class JsonExpress {
     private handlerItems;
     private _typeCheckerGenerator;
     constructor(handlers?: JsonExpressHandler[]);
-    typeCheckerGenerator: JsonExpressTypeCheckerGenerator;
+    get typeCheckerGenerator(): JsonExpressTypeCheckerGenerator;
+    set typeCheckerGenerator(gen: JsonExpressTypeCheckerGenerator);
     private generateTypeCheckers;
     addHandler(handler: JsonExpressHandler): void;
     build(expression: any, context?: JsonExpressContext, cb?: JsonExpressReturnCallback): Promise<unknown>;

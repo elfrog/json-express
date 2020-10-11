@@ -87,7 +87,7 @@ function checkValueType(value: any, type: BuildType) {
       }
       break;
     case 'null':
-      if (typeof value !== null) {
+      if (value !== null) {
         return false;
       }
       break;
