@@ -21,17 +21,17 @@
   },
   "license": "MIT",
   "dependencies": {
-    "eventemitter3": "^4.0.0",
-    "md5": "^2.2.1",
-    "moment": "^2.24.0",
+    "eventemitter3": "^4.0.7",
+    "md5": "^2.3.0",
+    "moment": "^2.29.1",
     "typify": "^0.2.10"
   },
   "devDependencies": {
     "@types/mocha": "^5.2.7",
-    "@types/node": "^11.13.18",
-    "mocha": "^6.2.0",
+    "@types/node": "^11.15.31",
+    "mocha": "^6.2.3",
     "pegjs": "^0.10.0",
-    "ts-node": "^8.3.0",
-    "typescript": "^3.5.3"
+    "ts-node": "^8.10.2",
+    "typescript": "^3.9.7"
   }
 }

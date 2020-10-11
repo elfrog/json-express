@@ -11,6 +11,7 @@ interface JsonExpressHandler {
     build(value: any, context?: JsonExpressContext): any | Promise<any>;
 }
 interface JsonExpressHandlerItem {
+    handlerName: string;
     matcher: FlatSchemaMatcher;
     handler: JsonExpressHandler;
     typeCheckers: JsonExpressTypeCheckerMap;
@@ -32,7 +33,8 @@ declare class JsonExpress {
     private handlerItems;
     private _typeCheckerGenerator;
     constructor(handlers?: JsonExpressHandler[]);
-    typeCheckerGenerator: JsonExpressTypeCheckerGenerator;
+    get typeCheckerGenerator(): JsonExpressTypeCheckerGenerator;
+    set typeCheckerGenerator(gen: JsonExpressTypeCheckerGenerator);
     private generateTypeCheckers;
     addHandler(handler: JsonExpressHandler): void;
     build(expression: any, context?: JsonExpressContext, cb?: JsonExpressReturnCallback): Promise<unknown>;
